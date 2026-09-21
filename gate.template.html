@@ -45,9 +45,9 @@ input.no{animation:shake .45s;border-color:#b55c3b}
     <input id="pw" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="the magic words…" aria-label="Passcode">
     <button class="btn" id="go" type="submit">Open</button>
   </form>
-  <p class="hint">Hint: who insisted on coming?</p>
+  <p class="hint">Hint: Are you Sarah? Answer honestly. Two words.</p>
   <p class="taunt" id="taunt" aria-live="polite"></p>
-  <p class="fine">Three wrong guesses and the duck starts judging.</p>
+  <p class="fine">Three wrong guesses and management starts judging.</p>
 </main>
 <script>
 (async function(){
@@ -55,7 +55,7 @@ input.no{animation:shake .45s;border-color:#b55c3b}
   const KEY='sarah-gate';
   const b=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
   const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-  const TAUNTS=['Wrong. The duck is disappointed.','Nope. Try quacking harder.','Incorrect. Have you tried being Sarah?','Still no. Read the hint. Slowly.','Bold of you to keep going.','The duck has left the room.'];
+  const TAUNTS=['Wrong. Very un-Sarah of you.','Nope. Have you tried being Sarah?','Incorrect. The hint is right there.','Still no. Two words. One of them is obvious.','Bold of you to keep going.','Management has been notified.'];
   let misses=0;
   const $=s=>document.querySelector(s);
   async function unlock(raw){
