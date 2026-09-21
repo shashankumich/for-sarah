@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>For Sarah</title>
+<meta name="description" content="Sealed. Passcode required.">
+<meta property="og:title" content="For Sarah">
+<meta property="og:description" content="Sealed. Passcode required.">
+<meta name="theme-color" content="#f5f0e6">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%232f4f46'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='%23c8a45d' font-family='Georgia,serif' font-style='italic'>S</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f0e6;--bg2:#ede6d8;--bg3:#f7f3ea;--ink:#1e2a28;--muted:#75706a;--green:#2f4f46;--green2:#476b60;--brass:#c8a45d;--stone:#d9d0c1;--card:#fbf8f2;--line:rgba(30,42,40,.18);--shadow:0 14px 40px rgba(60,50,35,.12);--serif:'Cormorant Garamond',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100svh;display:flex;align-items:center;justify-content:center;padding:32px 20px;text-align:center;font-family:var(--sans);color:var(--ink);background:linear-gradient(180deg,var(--bg),var(--bg2) 55%,var(--bg3));-webkit-font-smoothing:antialiased}
+.gate{max-width:420px;width:100%}
+.seal{width:84px;height:84px;margin:0 auto 22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#3f6459,#243e37 72%);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;font-weight:600;font-size:2.4rem;color:var(--brass);box-shadow:0 6px 18px rgba(0,0,0,.25);animation:wobble 3.2s ease-in-out infinite}
+@keyframes wobble{0%,100%{transform:rotate(-1deg) translateY(0)}50%{transform:rotate(1deg) translateY(-6px)}}
+.eyebrow{letter-spacing:.22em;text-transform:uppercase;font-size:.72rem;color:var(--muted);font-weight:600;margin:0 0 12px}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.2rem,9vw,3.2rem);line-height:1.05;margin:0 0 .3em}
+.lede{color:#4d4a44;font-size:1.05rem;line-height:1.55;margin:0 auto 22px;max-width:34ch}
+form{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+input{flex:1 1 200px;min-width:0;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:14px 18px;font:400 1rem var(--sans);color:var(--ink);outline:none;text-align:center;letter-spacing:.04em}
+input:focus{border-color:var(--brass)}
+input.no{animation:shake .45s;border-color:#b55c3b}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.btn{background:var(--green);color:#f6f1e7;border:0;border-radius:999px;padding:14px 26px;font:600 .98rem var(--sans);cursor:pointer;box-shadow:0 8px 22px rgba(47,79,70,.26);transition:transform .15s,background .2s}
+.btn:hover{transform:translateY(-2px);background:var(--green2)}
+.btn[disabled]{opacity:.6;cursor:wait;transform:none}
+.hint{font-family:var(--serif);font-style:italic;color:var(--brass);font-size:1.15rem;margin:22px 0 0}
+.taunt{color:#b55c3b;font-weight:500;min-height:1.5em;margin:12px 0 0}
+.fine{color:var(--muted);font-size:.8rem;margin-top:34px;font-style:italic}
+</style>
+</head>
+<body>
+<main class="gate">
+  <div class="seal">S</div>
+  <p class="eyebrow">Members only</p>
+  <h1>Passcode, please.</h1>
+  <p class="lede">This page is sealed. Say the magic words and it will open. (Spelling, capitals and spaces don't matter. Attitude does.)</p>
+  <form id="f" autocomplete="off">
+    <input id="pw" type="text" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="the magic words…" aria-label="Passcode">
+    <button class="btn" id="go" type="submit">Open</button>
+  </form>
+  <p class="hint">Hint: who insisted on coming?</p>
+  <p class="taunt" id="taunt" aria-live="polite"></p>
+  <p class="fine">Three wrong guesses and the duck starts judging.</p>
+</main>
+<script>
+(async function(){
+  const DATA={salt:'__SALT__',iv:'__IV__',ct:'__CT__'};
+  const KEY='sarah-gate';
+  const b=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+  const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const TAUNTS=['Wrong. The duck is disappointed.','Nope. Try quacking harder.','Incorrect. Have you tried being Sarah?','Still no. Read the hint. Slowly.','Bold of you to keep going.','The duck has left the room.'];
+  let misses=0;
+  const $=s=>document.querySelector(s);
+  async function unlock(raw){
+    const pw=norm(raw); if(!pw) return false;
+    try{
+      const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+      const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b(DATA.salt),iterations:200000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
+      const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b(DATA.iv)},key,b(DATA.ct));
+      const html=new TextDecoder().decode(pt);
+      try{localStorage.setItem(KEY,pw)}catch(e){}
+      document.open(); document.write(html); document.close();
+      return true;
+    }catch(e){ return false }
+  }
+  let saved=null; try{saved=localStorage.getItem(KEY)}catch(e){}
+  if(saved && await unlock(saved)) return;
+  $('#f').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const go=$('#go'), pw=$('#pw'); go.disabled=true; go.textContent='Checking…';
+    const ok=await unlock(pw.value);
+    if(ok) return;
+    go.disabled=false; go.textContent='Open';
+    pw.classList.remove('no'); void pw.offsetWidth; pw.classList.add('no'); pw.select();
+    $('#taunt').textContent=TAUNTS[misses++%TAUNTS.length];
+  });
+})();
+</script>
+</body>
+</html>
